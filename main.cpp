@@ -232,16 +232,11 @@ void getkraken(std::string URL)
 }
 int main() {
 
-    std::string BitstampURL ;
-    std::string KrakenURL;
-    std::cout<<"enter your bitstamp link\n";
-    std::cin>>BitstampURL;
-    std::cout<<"enter your binance link\n";
-    std::cin>>KrakenURL;
-    std::thread KrakenThread(getkraken,KrakenURL);
-    std::thread BitstampThread(getbitstamp,BitstampURL);
+    std::string BitstampURL = "wss://ws.bitstamp.net/";
+    std::string KrakenURL = "wss://ws.kraken.com";
+    std::thread KrakenThread(getkraken, KrakenURL);
+    std::thread BitstampThread(getbitstamp, BitstampURL);
 
     KrakenThread.join();
     BitstampThread.join();
-//wss://data-stream.binance.vision ss://stream.binance.com:443 wss://ws.bitstamp.net/ wss://ws.kraken.com
 }
