@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.25)
+project(websocketc__)
+
+set(CMAKE_CXX_STANDARD 17)
+
+add_executable(websocketc__ main.cpp)
+add_executable(siesta__ main.cpp)
+include_directories(Asio)
+include_directories(beast)
+include_directories(websocketpp)
+include_directories(boost)
+include_directories(siesta)
+file (GLOB SOURCE_FILES *.cpp)
+file (GLOB HEADER_FILES *.hpp)
+find_package(OpenSSL REQUIRED)
+target_link_libraries(websocketc__ ${OPENSSL_LIBRARIES})

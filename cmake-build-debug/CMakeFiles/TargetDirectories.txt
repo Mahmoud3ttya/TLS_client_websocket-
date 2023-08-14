@@ -1,0 +1,4 @@
+/home/mahmoud/CLionProjects/websocketc++/cmake-build-debug/CMakeFiles/websocketc__.dir
+/home/mahmoud/CLionProjects/websocketc++/cmake-build-debug/CMakeFiles/siesta__.dir
+/home/mahmoud/CLionProjects/websocketc++/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/mahmoud/CLionProjects/websocketc++/cmake-build-debug/CMakeFiles/rebuild_cache.dir
