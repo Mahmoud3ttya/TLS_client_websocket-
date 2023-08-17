@@ -15,46 +15,57 @@ using websocketpp::lib::bind;
 
 // {"event":"bts:subscribe","data":{"channel":"order_book_btcusd"}}
 //connection_hdl is a connection identifier that is more filxable than connection_ptr which is defined in <websocketpp/common/connection_hdl.hpp>
-void on_open_bitstamp(client* c, websocketpp::connection_hdl hdl) {
-    std::string  msg = "{\n"
-                       "    \"event\": \"bts:subscribe\",\n"
-                       "    \"data\": {\n"
-                       "        \"channel\": \"order_book_btcusd\"\n"
-                       "    }\n"
-                       "}";
-    c->send(hdl,msg,websocketpp::frame::opcode::text);
-    c->get_alog().write(websocketpp::log::alevel::app, "Sent Message: "+msg);
+void on_open_bitstamp(client* c, websocketpp::connection_hdl hdl,int i) {
+   if(i==1)
+   {
+       std::string  msg = "{\n"
+                          "    \"event\": \"bts:subscribe\",\n"
+                          "    \"data\": {\n"
+                          "        \"channel\": \"order_book_btcusd\"\n"
+                          "    }\n"
+                          "}";
+       c->send(hdl,msg,websocketpp::frame::opcode::text);
+       c->get_alog().write(websocketpp::log::alevel::app, "Sent Message: "+msg);
+   }
+   else if(i==2)
+   {
+       std::string  msg = "{\n"
+                          "  \"event\": \"subscribe\",\n"
+                          "  \"pair\": [\n"
+                          "    \"XBT/USD\",\n"
+                          "    \"XBT/EUR\"\n"
+                          "  ],\n"
+                          "  \"subscription\": {\n"
+                          "    \"name\": \"ticker\"\n"
+                          "  }\n"
+                          "}";
+       c->send(hdl,msg,websocketpp::frame::opcode::text);
+       c->get_alog().write(websocketpp::log::alevel::app, "Sent Message: "+msg);
+   }
+
 }
-void on_open_binance(client* c, websocketpp::connection_hdl hdl) {
-    std::string  msg = "{\n"
-                       "  \"event\": \"subscribe\",\n"
-                       "  \"pair\": [\n"
-                       "    \"XBT/USD\",\n"
-                       "    \"XBT/EUR\"\n"
-                       "  ],\n"
-                       "  \"subscription\": {\n"
-                       "    \"name\": \"ticker\"\n"
-                       "  }\n"
-                       "}";
-    c->send(hdl,msg,websocketpp::frame::opcode::text);
-    c->get_alog().write(websocketpp::log::alevel::app, "Sent Message: "+msg);
-}
+
 
 void on_fail(client* c, websocketpp::connection_hdl hdl) {
     c->get_alog().write(websocketpp::log::alevel::app, "Connection Failed");
 }
 // text from doc "he endpoint method that sends a new message will take as a parameter the hdl of the connection to send the message to."
-void on_message_bitstamp(client* c, websocketpp::connection_hdl hdl, client::message_ptr msg) {
+void on_message_bitstamp(client* c, websocketpp::connection_hdl hdl, client::message_ptr msg,int i) {
     std::ofstream myfile;
-    myfile.open ("example66.txt",std::ios_base::app);
-    myfile<<msg->get_payload() ;
+    if(i==1)
+    {
+        myfile.open ("example99.txt",std::ios_base::app);
+        myfile<<msg->get_payload() ;
+    }
+    else if(i==2)
+    {
+        myfile.open ("example100.txt",std::ios_base::app);
+        myfile<<msg->get_payload() ;
+    }
+
 
 }
-void on_message(client* c, websocketpp::connection_hdl hdl, client::message_ptr msg) {
-    std::ofstream myfile2;
-    myfile2.open ("example67.txt",std::ios_base::app);
-    myfile2<<msg->get_payload() ;
-}
+
 void on_close(client* c, websocketpp::connection_hdl hdl) {
     c->get_alog().write(websocketpp::log::alevel::app, "Connection Closed");
 }
@@ -157,13 +168,18 @@ context_ptr on_tls_init(const char * hostname, websocketpp::connection_hdl) {
     }
     return ctx;
 }
-void getbitstamp(std::string URL)
+void Connection(std::string URL)
 {
     client c;
     std::string uri=URL;
     std::string msg;
-
+    int i;
     std::string hostname = uri.substr(6,uri.length());
+    std::cout<<hostname;
+    if(hostname=="ws.bitstamp.net/")
+        i=1;
+    else if(hostname=="ws.kraken.com")
+        i=2;
 
     try {
         // set  logging behavior to silent by clearing all of the access and error logging channels.
@@ -176,9 +192,9 @@ void getbitstamp(std::string URL)
 
         // Register our handlers Ws://echo.websocket.org
         //open and a fail handler will be used to track whether each connection was successfully opened or failed. If it successfully opens, we will gather some information from the opening handshake
-        c.set_open_handler(bind(&on_open_bitstamp,&c,::_1));//set the handler to be called when a new connection is open
+        c.set_open_handler(bind(&on_open_bitstamp,&c,::_1,i));//set the handler to be called when a new connection is open
         c.set_fail_handler(bind(&on_fail,&c,::_1));//set the handler to be called when a connection fails to connect
-        c.set_message_handler(bind(&on_message_bitstamp,&c,::_1,::_2));//The message handler is called after a new message has been received.
+        c.set_message_handler(bind(&on_message_bitstamp,&c,::_1,::_2,i));//The message handler is called after a new message has been received.
         c.set_close_handler(bind(&on_close,&c,::_1));//The close handler is called immediately after the connection is closed.
         c.set_tls_init_handler(bind(&on_tls_init, hostname.c_str(), ::_1));//The tls init handler is called when needed to request a TLS context for the library to use. A TLS init handler must be set and it must return a valid TLS context in order for this endpoint to be able to initialize TLS connections
 
@@ -199,7 +215,7 @@ void getbitstamp(std::string URL)
         client::connection_ptr con  = c.get_connection(uri, ec);
 
         c.connect(con);
-        c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + uri);
+        c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + hostname);
         // Start the ASIO io_service run loop
         c.run();
         /*
@@ -219,51 +235,13 @@ void getbitstamp(std::string URL)
         std::cout << "other exception" << std::endl;
     }
 }
-void getkraken(std::string URL)
-{
-    client c;
-    std::string uri=URL;
-    std::string msg;
 
-    std::string hostname = uri.substr(6,uri.length());
-
-    try {
-        // set logging policy if needed
-        c.clear_access_channels(websocketpp::log::alevel::frame_header);
-        c.clear_access_channels(websocketpp::log::alevel::frame_payload);
-        c.set_error_channels(websocketpp::log::elevel::all);
-        // Initialize ASIO
-        c.init_asio();
-        c.start_perpetual();
-
-        // Register our handlers Ws://echo.websocket.org
-        c.set_open_handler(bind(&on_open_binance,&c,::_1));
-        c.set_fail_handler(bind(&on_fail,&c,::_1));
-        c.set_message_handler(bind(&on_message,&c,::_1,::_2));
-        c.set_close_handler(bind(&on_close,&c,::_1));
-        c.set_tls_init_handler(bind(&on_tls_init, hostname.c_str(), ::_1));
-        // Create a connection to the given URI and queue it for connection once
-        // the event loop starts
-        websocketpp::lib::error_code ec;
-        client::connection_ptr con  = c.get_connection(uri, ec);
-        c.connect(con);
-        c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + uri);
-        // Start the ASIO io_service run loop
-        c.run();
-    } catch (const std::exception & e) {
-        std::cout << e.what() << std::endl;
-    }
-    catch (websocketpp::lib::error_code e) {
-        std::cout << e.message() << std::endl;
-    } catch (...) {
-        std::cout << "other exception" << std::endl;
-    }
-}
 int main() {
     std::string BitstampURL = "wss://ws.bitstamp.net/";
     std::string KrakenURL = "wss://ws.kraken.com";
-    std::thread KrakenThread(getkraken, KrakenURL);
-    std::thread BitstampThread(getbitstamp, BitstampURL);
+    std::thread BitstampThread(Connection, BitstampURL);
+    std::thread KrakenThread(Connection, KrakenURL);
+
 
     KrakenThread.join();
     BitstampThread.join();
