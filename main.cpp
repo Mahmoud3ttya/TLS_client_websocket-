@@ -51,16 +51,20 @@ void on_fail(client* c, websocketpp::connection_hdl hdl) {
 }
 // text from doc "he endpoint method that sends a new message will take as a parameter the hdl of the connection to send the message to."
 void on_message_bitstamp(client* c, websocketpp::connection_hdl hdl, client::message_ptr msg,int i) {
-    std::ofstream myfile;
+
     if(i==1)
     {
-        myfile.open ("example99.txt",std::ios_base::app);
+        std::ofstream myfile;
+        myfile.open ("bitstamp_data.txt",std::ios_base::app);
         myfile<<msg->get_payload() ;
+        myfile.close();
     }
     else if(i==2)
     {
-        myfile.open ("example100.txt",std::ios_base::app);
-        myfile<<msg->get_payload() ;
+        std::ofstream myfile2;
+        myfile2.open ("kraken_data.txt",std::ios_base::app);
+        myfile2<<msg->get_payload() ;
+        myfile2.close();
     }
 
 
@@ -182,7 +186,7 @@ void Connection(std::string URL)
         i=2;
 
     try {
-        // set  logging behavior to silent by clearing all of the access and error logging channels.
+        // set  logging behavior to silent by clearing all access and error logging channels.
         c.clear_access_channels(websocketpp::log::alevel::frame_header);
         c.clear_access_channels(websocketpp::log::alevel::frame_payload);
         c.set_error_channels(websocketpp::log::elevel::all);
@@ -200,7 +204,7 @@ void Connection(std::string URL)
 
         /*
          * The connect method
-        A new WebSocket connection is initiated via a three step process. First, a connection request is created by endpoint::get_connection(uri). Next, the connection request is configured. Lastly, the connection request is submitted back to the endpoint via endpoint::connect() which adds it to the queue of new connections to make.
+        A new WebSocket connection is initiated via three step . First, a connection request is created by endpoint::get_connection(uri). Next, the connection request is configured. Lastly, the connection request is submitted back to the endpoint via endpoint::connect() which adds it to the queue of new connections to make.
 
         Terminology <tt>connection_ptr</tt>
         WebSocket++ keeps track of connection related resources using a reference counted shared pointer. The type of this pointer is endpoint::connection_ptr. A connection_ptr allows direct access to information about the connection and allows changing connection settings. Because of this direct access and their internal resource management role within the library it is not safe for end applications to use connection_ptr except in the specific circumstances detailed below.
@@ -218,6 +222,7 @@ void Connection(std::string URL)
         c.get_alog().write(websocketpp::log::alevel::app, "Connecting to " + hostname);
         // Start the ASIO io_service run loop
         c.run();
+
         /*
          Terminology: error handling: exceptions vs error_code
          WebSocket++ uses the error code system defined by the C++11 <system_error> library. It can optionally fall back to a similar system provided by the Boost libraries. All user facing endpoint methods that can fail take an error_code in an output parameter and store the error that occured there before returning. An empty/default constructed value is returned in the case of success.
