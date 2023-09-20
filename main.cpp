@@ -236,8 +236,6 @@ void Connection(std::string URL)
     }
     catch (websocketpp::lib::error_code e) {
         std::cout << e.message() << std::endl;
-    } catch (...) {
-        std::cout << "other exception" << std::endl;
     }
 }
 
